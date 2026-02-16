@@ -35,28 +35,66 @@ body{
 
 <script>
 const scriptURL = "https://script.google.com/macros/s/AKfycbzy2AT1Aimc6ZSYk4jj_OknheQb-NC4FKx-ePw9R-4A7aeoCK6iXU1Ldtco37lC4bUo/exec";
+let answers = {};
+let questionsData = [];
 
 fetch(scriptURL)
-.then(res=>res.json())
-.then(data=>{
-  const q=data[0];
-  document.getElementById("question").innerText=q[0];
-  for(let i=1;i<=5;i++){
-    let span=document.createElement("span");
-    span.className="emoji";
-    span.innerText=q[i];
-    span.onclick=()=>send(q[0],i);
-    document.getElementById("emojiArea").appendChild(span);
-  }
+.then(res => res.json())
+.then(data => {
+  questionsData = data;
+  const area = document.getElementById("emojiArea");
+  area.innerHTML = "";
+
+  data.forEach((q, index) => {
+    const div = document.createElement("div");
+    div.style.marginBottom = "20px";
+
+    const title = document.createElement("h3");
+    title.innerText = q[0];
+    div.appendChild(title);
+
+    for (let i = 1; i <= 5; i++) {
+      const span = document.createElement("span");
+      span.className = "emoji";
+      span.innerText = q[i];
+      span.onclick = () => {
+        answers[q[0]] = i;
+        span.style.transform = "scale(1.4)";
+        setTimeout(()=>span.style.transform="scale(1)",200);
+      };
+      div.appendChild(span);
+    }
+
+    area.appendChild(div);
+  });
+
+  const submitBtn = document.createElement("button");
+  submitBtn.innerText = "ส่งแบบประเมิน";
+  submitBtn.style.padding="10px 20px";
+  submitBtn.style.fontSize="16px";
+  submitBtn.onclick = submitAll;
+  area.appendChild(submitBtn);
 });
 
-function send(question,score){
-  fetch(scriptURL,{
-    method:"POST",
-    body:JSON.stringify({question:question,score:score})
-  })
-  .then(()=>document.getElementById("msg").innerText="ขอบคุณ 🙏");
+function submitAll(){
+  if(Object.keys(answers).length !== questionsData.length){
+    alert("กรุณาตอบให้ครบทุกข้อ");
+    return;
+  }
+
+  questionsData.forEach(q=>{
+    fetch(scriptURL,{
+      method:"POST",
+      body:JSON.stringify({
+        question:q[0],
+        score:answers[q[0]]
+      })
+    });
+  });
+
+  document.getElementById("msg").innerText="ขอบคุณสำหรับคำตอบ 🙏";
 }
 </script>
+
 </body>
 </html>
