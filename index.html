@@ -1,143 +1,139 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <base target="_top">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body{
+  font-family:Segoe UI;
+  background:#f1f5f9;
+  padding:20px;
+}
 
-  <style>
-    body {
-      font-family: "Segoe UI", sans-serif;
-      background: linear-gradient(135deg,#e0f2fe,#f0f9ff);
-      padding: 20px;
-    }
+h2{
+  text-align:center;
+  margin-bottom:30px;
+}
 
-    .card {
-      background: white;
-      border-radius: 16px;
-      padding: 20px;
-      margin-bottom: 20px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-      animation: fadeIn 0.4s ease;
-    }
+.card{
+  background:white;
+  padding:20px;
+  border-radius:16px;
+  box-shadow:0 6px 15px rgba(0,0,0,0.08);
+  margin-bottom:20px;
+  animation:fadeIn 0.3s ease;
+}
 
-    h2 {
-      text-align: center;
-      margin-bottom: 30px;
-    }
+.question{
+  font-weight:600;
+  margin-bottom:10px;
+}
 
-    .question-title {
-      font-size: 18px;
-      margin-bottom: 12px;
-      font-weight: 600;
-    }
+.emoji-group{
+  display:flex;
+  justify-content:space-between;
+  max-width:300px;
+}
 
-    .emoji-group {
-      display: flex;
-      justify-content: space-between;
-      max-width: 300px;
-      margin: auto;
-    }
+.emoji{
+  font-size:26px;
+  cursor:pointer;
+  padding:8px;
+  border-radius:50%;
+  transition:all 0.2s ease;
+}
 
-    .emoji {
-      font-size: 28px;
-      cursor: pointer;
-      padding: 10px;
-      border-radius: 50%;
-      transition: all 0.25s ease;
-    }
+.emoji:hover{
+  transform:scale(1.2);
+}
 
-    .emoji:hover {
-      transform: scale(1.2);
-    }
+.selected{
+  background:#3b82f6;
+  color:white;
+  transform:scale(1.3);
+  box-shadow:0 4px 10px rgba(59,130,246,0.4);
+}
 
-    .selected {
-      background: linear-gradient(135deg,#3b82f6,#2563eb);
-      color: white;
-      transform: scale(1.4);
-      box-shadow: 0 6px 15px rgba(37,99,235,0.4);
-    }
+.faded{
+  opacity:0.4;
+}
 
-    .faded {
-      opacity: 0.4;
-    }
+button.submit{
+  display:block;
+  margin:30px auto;
+  padding:10px 30px;
+  font-size:16px;
+  border:none;
+  border-radius:30px;
+  background:#10b981;
+  color:white;
+  cursor:pointer;
+}
 
-    button {
-      display: block;
-      margin: 30px auto;
-      padding: 12px 30px;
-      border: none;
-      border-radius: 30px;
-      font-size: 16px;
-      background: linear-gradient(135deg,#10b981,#059669);
-      color: white;
-      cursor: pointer;
-      transition: 0.3s;
-    }
+button.submit:hover{
+  background:#059669;
+}
 
-    button:hover {
-      transform: scale(1.05);
-      box-shadow: 0 6px 15px rgba(5,150,105,0.4);
-    }
+.success{
+  text-align:center;
+  color:#059669;
+  display:none;
+  font-weight:bold;
+}
 
-    @keyframes fadeIn {
-      from {opacity:0; transform: translateY(10px);}
-      to {opacity:1; transform: translateY(0);}
-    }
-
-    .success {
-      text-align:center;
-      font-size:18px;
-      color:#059669;
-      display:none;
-    }
-  </style>
+@keyframes fadeIn{
+  from{opacity:0;transform:translateY(10px);}
+  to{opacity:1;transform:translateY(0);}
+}
+</style>
 </head>
 
 <body>
 
-  <h2>✨ แบบประเมินความพึงพอใจ ✨</h2>
+<h2>แบบประเมินความพึงพอใจ</h2>
 
-  <div id="form"></div>
+<div id="form"></div>
 
-  <button onclick="submitForm()">ส่งแบบประเมิน</button>
+<button class="submit" onclick="submitForm()">ส่งแบบประเมิน</button>
 
-  <div class="success" id="successMsg">
-    ✅ ส่งข้อมูลเรียบร้อยแล้ว ขอบคุณครับ/ค่ะ
-  </div>
+<div class="success" id="successMsg">
+✅ ส่งข้อมูลเรียบร้อยแล้ว
+</div>
 
 <script>
-let questions = [
-  "การบริการโดยรวม",
-  "ความรวดเร็ว",
-  "คุณภาพงาน",
-  "ความสุภาพ"
-];
 
-let emojis = ["😡","😕","😐","😊","😍"];
 let answers = {};
+let totalQuestions = 0;
 
-function loadForm(){
+google.script.run.withSuccessHandler(loadQuestions).getQuestions();
+
+function loadQuestions(data){
+
   const form = document.getElementById("form");
+  totalQuestions = data.length;
 
-  questions.forEach((q,index)=>{
-    let card = document.createElement("div");
-    card.className = "card";
+  data.forEach((row,index)=>{
 
-    let title = document.createElement("div");
-    title.className = "question-title";
-    title.innerText = q;
+    const question = row[0];
+    const emojis = row.slice(1);
 
-    let group = document.createElement("div");
-    group.className = "emoji-group";
+    const card = document.createElement("div");
+    card.className="card";
+
+    const title = document.createElement("div");
+    title.className="question";
+    title.innerText = question;
+
+    const group = document.createElement("div");
+    group.className="emoji-group";
 
     emojis.forEach(e=>{
-      let span = document.createElement("span");
-      span.className = "emoji";
-      span.innerText = e;
+      const span=document.createElement("span");
+      span.className="emoji";
+      span.innerText=e;
 
-      span.onclick = function(){
-        selectEmoji(this,index);
-      }
+      span.onclick=()=>{
+        selectEmoji(span,index);
+      };
 
       group.appendChild(span);
     });
@@ -148,9 +144,10 @@ function loadForm(){
   });
 }
 
-function selectEmoji(element,questionIndex){
-  const parent = element.parentElement;
-  const all = parent.querySelectorAll(".emoji");
+function selectEmoji(element,index){
+
+  const group = element.parentElement;
+  const all = group.querySelectorAll(".emoji");
 
   all.forEach(e=>{
     e.classList.remove("selected");
@@ -160,12 +157,13 @@ function selectEmoji(element,questionIndex){
   element.classList.remove("faded");
   element.classList.add("selected");
 
-  answers[questionIndex] = element.innerText;
+  answers[index] = element.innerText;
 }
 
 function submitForm(){
-  if(Object.keys(answers).length < questions.length){
-    alert("กรุณาเลือกให้ครบทุกข้อ");
+
+  if(Object.keys(answers).length !== totalQuestions){
+    alert("กรุณาตอบให้ครบทุกข้อ");
     return;
   }
 
@@ -174,7 +172,6 @@ function submitForm(){
   document.getElementById("successMsg").style.display="block";
 }
 
-loadForm();
 </script>
 
 </body>
