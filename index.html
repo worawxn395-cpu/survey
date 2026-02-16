@@ -1,99 +1,180 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>แบบประเมินความเพิ่งพอใจ</title>
-<style>
-body{
-  font-family:Arial;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  height:100vh;
-  background:#f4f6f9;
-}
-.card{
-  background:white;
-  padding:30px;
-  border-radius:15px;
-  text-align:center;
-  box-shadow:0 5px 20px rgba(0,0,0,0.1);
-}
-.emoji{
-  font-size:30px;
-  margin:10px;
-  cursor:pointer;
-}
-</style>
-</head>
-<body>
-<div class="card">
-  <h2 id="question">Loading...</h2>
-  <div id="emojiArea"></div>
-  <div id="msg"></div>
-</div>
+  <base target="_top">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<script>
-const scriptURL = "https://script.google.com/macros/s/AKfycbzy2AT1Aimc6ZSYk4jj_OknheQb-NC4FKx-ePw9R-4A7aeoCK6iXU1Ldtco37lC4bUo/exec";
-let answers = {};
-let questionsData = [];
-
-fetch(scriptURL)
-.then(res => res.json())
-.then(data => {
-  questionsData = data;
-  const area = document.getElementById("emojiArea");
-  area.innerHTML = "";
-
-  data.forEach((q, index) => {
-    const div = document.createElement("div");
-    div.style.marginBottom = "20px";
-
-    const title = document.createElement("h3");
-    title.innerText = q[0];
-    div.appendChild(title);
-
-    for (let i = 1; i <= 5; i++) {
-      const span = document.createElement("span");
-      span.className = "emoji";
-      span.innerText = q[i];
-      span.onclick = () => {
-        answers[q[0]] = i;
-        span.style.transform = "scale(1.4)";
-        setTimeout(()=>span.style.transform="scale(1)",200);
-      };
-      div.appendChild(span);
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: linear-gradient(135deg,#e0f2fe,#f0f9ff);
+      padding: 20px;
     }
 
-    area.appendChild(div);
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+      animation: fadeIn 0.4s ease;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .question-title {
+      font-size: 18px;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+
+    .emoji-group {
+      display: flex;
+      justify-content: space-between;
+      max-width: 300px;
+      margin: auto;
+    }
+
+    .emoji {
+      font-size: 28px;
+      cursor: pointer;
+      padding: 10px;
+      border-radius: 50%;
+      transition: all 0.25s ease;
+    }
+
+    .emoji:hover {
+      transform: scale(1.2);
+    }
+
+    .selected {
+      background: linear-gradient(135deg,#3b82f6,#2563eb);
+      color: white;
+      transform: scale(1.4);
+      box-shadow: 0 6px 15px rgba(37,99,235,0.4);
+    }
+
+    .faded {
+      opacity: 0.4;
+    }
+
+    button {
+      display: block;
+      margin: 30px auto;
+      padding: 12px 30px;
+      border: none;
+      border-radius: 30px;
+      font-size: 16px;
+      background: linear-gradient(135deg,#10b981,#059669);
+      color: white;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 15px rgba(5,150,105,0.4);
+    }
+
+    @keyframes fadeIn {
+      from {opacity:0; transform: translateY(10px);}
+      to {opacity:1; transform: translateY(0);}
+    }
+
+    .success {
+      text-align:center;
+      font-size:18px;
+      color:#059669;
+      display:none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h2>✨ แบบประเมินความพึงพอใจ ✨</h2>
+
+  <div id="form"></div>
+
+  <button onclick="submitForm()">ส่งแบบประเมิน</button>
+
+  <div class="success" id="successMsg">
+    ✅ ส่งข้อมูลเรียบร้อยแล้ว ขอบคุณครับ/ค่ะ
+  </div>
+
+<script>
+let questions = [
+  "การบริการโดยรวม",
+  "ความรวดเร็ว",
+  "คุณภาพงาน",
+  "ความสุภาพ"
+];
+
+let emojis = ["😡","😕","😐","😊","😍"];
+let answers = {};
+
+function loadForm(){
+  const form = document.getElementById("form");
+
+  questions.forEach((q,index)=>{
+    let card = document.createElement("div");
+    card.className = "card";
+
+    let title = document.createElement("div");
+    title.className = "question-title";
+    title.innerText = q;
+
+    let group = document.createElement("div");
+    group.className = "emoji-group";
+
+    emojis.forEach(e=>{
+      let span = document.createElement("span");
+      span.className = "emoji";
+      span.innerText = e;
+
+      span.onclick = function(){
+        selectEmoji(this,index);
+      }
+
+      group.appendChild(span);
+    });
+
+    card.appendChild(title);
+    card.appendChild(group);
+    form.appendChild(card);
+  });
+}
+
+function selectEmoji(element,questionIndex){
+  const parent = element.parentElement;
+  const all = parent.querySelectorAll(".emoji");
+
+  all.forEach(e=>{
+    e.classList.remove("selected");
+    e.classList.add("faded");
   });
 
-  const submitBtn = document.createElement("button");
-  submitBtn.innerText = "ส่งแบบประเมิน";
-  submitBtn.style.padding="10px 20px";
-  submitBtn.style.fontSize="16px";
-  submitBtn.onclick = submitAll;
-  area.appendChild(submitBtn);
-});
+  element.classList.remove("faded");
+  element.classList.add("selected");
 
-function submitAll(){
-  if(Object.keys(answers).length !== questionsData.length){
-    alert("กรุณาตอบให้ครบทุกข้อ");
+  answers[questionIndex] = element.innerText;
+}
+
+function submitForm(){
+  if(Object.keys(answers).length < questions.length){
+    alert("กรุณาเลือกให้ครบทุกข้อ");
     return;
   }
 
-  questionsData.forEach(q=>{
-    fetch(scriptURL,{
-      method:"POST",
-      body:JSON.stringify({
-        question:q[0],
-        score:answers[q[0]]
-      })
-    });
-  });
+  google.script.run.saveData(answers);
 
-  document.getElementById("msg").innerText="ขอบคุณสำหรับคำตอบ 🙏";
+  document.getElementById("successMsg").style.display="block";
 }
+
+loadForm();
 </script>
 
 </body>
